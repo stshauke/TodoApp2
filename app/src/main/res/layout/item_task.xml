@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    MaterialCardView : carte Material Design pour chaque tâche
+    Donne un effet de carte avec coins arrondis et légère élévation
+    Chaque item de la RecyclerView sera une instance de ce layout
+-->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <!--
+        LinearLayout horizontal : aligne les 3 éléments côte à côte
+        CheckBox | Titre de la tâche | Bouton supprimer
+    -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="12dp">
+
+        <!--
+            CheckBox : case à cocher pour marquer la tâche comme terminée
+            ID checkDone → référencé dans TaskAdapter.kt ligne 47
+        -->
+        <CheckBox
+            android:id="@+id/checkDone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginEnd="8dp" />
+
+        <!--
+            TextView : affiche le titre de la tâche
+            ID tvTitle → référencé dans TaskAdapter.kt ligne 48
+            layout_weight="1" → prend tout l'espace disponible
+        -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="16sp"
+            android:textColor="?android:attr/textColorPrimary" />
+
+        <!--
+            ImageButton : bouton de suppression
+            ID btnDelete → référencé dans TaskAdapter.kt ligne 49
+        -->
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_delete"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Supprimer la tâche"
+            android:tint="?android:attr/textColorSecondary"
+            android:padding="8dp" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

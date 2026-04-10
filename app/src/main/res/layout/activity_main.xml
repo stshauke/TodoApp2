@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    CoordinatorLayout : conteneur racine intelligent
+    Permet aux enfants de communiquer entre eux
+    Ex: le FAB se déplace quand une Snackbar apparaît
+-->
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!--
+        AppBarLayout : conteneur pour la Toolbar + TabLayout
+        Reste fixe en haut de l'écran pendant le scroll
+    -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!--
+            MaterialToolbar : barre de titre en haut
+            setSupportActionBar() dans MainActivity la lie à l'Activity
+        -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:title="Mes tâches" />
+
+        <!--
+            TabLayout : barre d'onglets sous la Toolbar
+            tabGravity="fill" → les onglets occupent toute la largeur
+            tabMode="fixed" → nombre fixe d'onglets sans scroll horizontal
+        -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:tabGravity="fill"
+            app:tabMode="fixed">
+
+            <!-- Onglet 0 : toutes les tâches sans filtre -->
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Toutes" />
+
+            <!-- Onglet 1 : uniquement les tâches non terminées -->
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Actives" />
+
+            <!-- Onglet 2 : uniquement les tâches terminées -->
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Terminées" />
+
+        </com.google.android.material.tabs.TabLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!--
+        RecyclerView : liste scrollable des tâches
+        app:layout_behavior → se positionne automatiquement
+        sous l'AppBarLayout (Toolbar + TabLayout)
+        paddingBottom="80dp" → évite que le FAB cache la dernière tâche
+    -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <!--
+        TextView "liste vide" : affiché au centre quand aucune tâche
+        visibility="gone" → caché par défaut
+        MainActivity le rend visible si tasks.isEmpty()
+    -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Aucune tâche pour l'instant&#10;Appuie sur + pour commencer !"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:visibility="gone" />
+
+    <!--
+        FloatingActionButton : bouton "+" en bas à droite
+        layout_gravity="bottom|end" → ancré en bas à droite
+        Ouvre showAddTaskDialog() dans MainActivity au clic
+    -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="Ajouter une tâche"
+        app:srcCompat="@android:drawable/ic_input_add" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
