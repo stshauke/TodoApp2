@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")  // ← on revient à kapt, plus simple
+    id("kotlin-kapt")
 }
 
 android {
@@ -37,11 +37,11 @@ android {
     }
 }
 
-val roomVersion = "2.6.1"  // ← version stable, zéro problème
+// ← SEUL CHANGEMENT : 2.6.1 → 2.8.4 (compatible Kotlin 2.x)
+val roomVersion = "2.8.4"
 
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
-    // Activity KTX — nécessaire pour "by viewModels()"
     implementation("androidx.activity:activity-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
@@ -49,7 +49,7 @@ dependencies {
 
     // Room
     implementation("androidx.room:room-runtime:$roomVersion")
-    kapt("androidx.room:room-compiler:$roomVersion")  // ← kapt()
+    kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
 
     // ViewModel + LiveData
@@ -64,4 +64,13 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.room:room-testing:$roomVersion")
+
+    // Tests unitaires — LiveData + Coroutines
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+// Tests instrumentés — Room in-memory
+    androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
+    androidTestImplementation("androidx.test.core:core:1.5.0")
+
 }
