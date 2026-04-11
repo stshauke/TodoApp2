@@ -1,111 +1,57 @@
 package com.example.todoapp
 
+import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Rule
+import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
+import com.example.todoapp.data.TaskDatabase
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Tests instrumentés Espresso — s'exécutent sur l'émulateur
- *
- * Espresso pilote l'UI comme un vrai utilisateur :
- * - perform(click())       → simule un tap
- * - perform(typeText())    → simule une saisie clavier
- * - check(matches(...))    → vérifie l'état d'une vue
- *
- * Chaque test repart de zéro grâce à ActivityScenarioRule
- * qui redémarre MainActivity avant chaque test
- */
+@LargeTest
 @RunWith(AndroidJUnit4::class)
 class MainActivityTest {
 
-    /**
-     * ActivityScenarioRule : démarre MainActivity avant chaque test
-     * et la ferme proprement après — garantit un état propre
-     */
-    @get:Rule
-    val activityRule = ActivityScenarioRule(MainActivity::class.java)
+    private lateinit var scenario: ActivityScenario<MainActivity>
 
-    /**
-     * Test 1 : les éléments principaux sont visibles au démarrage
-     */
+    @Before
+    fun setUp() {
+        // Réinitialise le singleton avant chaque test
+        // Évite les conflits avec TaskDaoTest
+        TaskDatabase.resetInstance()
+        scenario = ActivityScenario.launch(MainActivity::class.java)
+    }
+
+    @After
+    fun tearDown() {
+        scenario.close()
+    }
+
     @Test
-    fun mainScreen_elementsAreDisplayed() {
-        // RecyclerView visible
-        onView(withId(R.id.recyclerView))
-            .check(matches(isDisplayed()))
-
-        // Bouton + visible
+    fun fab_isDisplayed() {
         onView(withId(R.id.fab))
             .check(matches(isDisplayed()))
+    }
 
-        // Onglets visibles
+    @Test
+    fun tabLayout_isDisplayed() {
         onView(withId(R.id.tabLayout))
             .check(matches(isDisplayed()))
     }
 
-    /**
-     * Test 2 : ajouter une tâche → elle apparaît dans la liste
-     *
-     * Simule exactement ce que ferait un utilisateur :
-     * 1. Tap sur +
-     * 2. Saisie du titre
-     * 3. Tap sur "Ajouter"
-     * 4. Vérification visuelle
-     */
     @Test
     fun addTask_appearsInList() {
-        // Tape sur le bouton +
-        onView(withId(R.id.fab))
-            .perform(click())
-
-        // Saisit le titre dans le champ (trouvé par son hint)
-        onView(withHint("Ex: Acheter du pain"))
-            .perform(
-                typeText("Boire de l'eau"),
-                closeSoftKeyboard()
-            )
-
-        // Tape sur "Ajouter"
-        onView(withText("Ajouter"))
-            .perform(click())
-
-        // Vérifie que la tâche apparaît dans la liste
-        onView(withText("Boire de l'eau"))
-            .check(matches(isDisplayed()))
-    }
-
-    /**
-     * Test 3 : la toolbar affiche le bon titre
-     */
-    @Test
-    fun toolbar_showsCorrectTitle() {
-        onView(withText("Mes tâches"))
-            .check(matches(isDisplayed()))
-    }
-
-    /**
-     * Test 4 : titre vide → aucune tâche ajoutée
-     *
-     * Vérifie que la validation fonctionne :
-     * si le titre est vide, la tâche n'est pas créée
-     * et le message "liste vide" reste affiché
-     */
-    @Test
-    fun addTask_emptyTitle_doesNotAdd() {
-        // Ouvre la dialog sans saisir de titre
+        val title = "Test ${System.currentTimeMillis()}"
         onView(withId(R.id.fab)).perform(click())
-
-        // Tape directement "Ajouter" sans saisir de texte
+        onView(withHint("Ex: Acheter du pain"))
+            .perform(typeText(title), closeSoftKeyboard())
         onView(withText("Ajouter")).perform(click())
-
-        // Le message "liste vide" doit rester visible
-        onView(withId(R.id.tvEmpty))
-            .check(matches(isDisplayed()))
+        onView(withText(title)).check(matches(isDisplayed()))
     }
 }

@@ -71,6 +71,7 @@ dependencies {
 
 // Tests instrumentés — Room in-memory
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
-    androidTestImplementation("androidx.test.core:core:1.5.0")
+    // Après — version correcte
+    // androidTestImplementation("androidx.test.core:core:1.6.1")
 
 }

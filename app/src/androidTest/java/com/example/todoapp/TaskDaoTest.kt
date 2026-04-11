@@ -8,7 +8,7 @@ import com.example.todoapp.data.Task
 import com.example.todoapp.data.TaskDao
 import com.example.todoapp.data.TaskDatabase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -19,26 +19,13 @@ import org.junit.runner.RunWith
 
 /**
  * Tests du DAO avec base Room en mémoire
- *
- * Ces tests s'exécutent sur l'émulateur car Room
- * a besoin d'un Context Android pour fonctionner
- *
- * "In-memory" = base créée en RAM, détruite après chaque test
- * → isolation parfaite entre les tests
- * → pas de données parasites d'un test à l'autre
- *
- * @RunWith(AndroidJUnit4::class) : indique à JUnit d'utiliser
- * le runner Android (fournit le Context)
+ * Utilise runBlocking au lieu de runTest pour éviter
+ * les problèmes de dispatcher dans les tests instrumentés
  */
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class TaskDaoTest {
 
-    /**
-     * InstantTaskExecutorRule : force LiveData à s'exécuter
-     * de manière synchrone sur le thread de test
-     * Sans cette règle, getOrAwaitValue() ne fonctionnerait pas
-     */
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
@@ -46,26 +33,22 @@ class TaskDaoTest {
     private lateinit var taskDao: TaskDao
 
     /**
-     * @Before : s'exécute avant CHAQUE test
-     * Crée une base Room en mémoire fraîche
+     * @Before : crée une base Room en mémoire avant chaque test
+     * inMemoryDatabaseBuilder → stocke tout en RAM
+     * allowMainThreadQueries → autorise les requêtes sur le thread principal
      */
     @Before
     fun createDatabase() {
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             TaskDatabase::class.java
-        )
-            // allowMainThreadQueries : autorise les requêtes sur le
-            // thread principal dans les tests (interdit en production)
-            .allowMainThreadQueries()
-            .build()
-
+        ).allowMainThreadQueries().build()
         taskDao = database.taskDao()
     }
 
     /**
-     * @After : s'exécute après CHAQUE test
-     * Ferme et détruit la base en mémoire
+     * @After : ferme la base après chaque test
+     * Libère la mémoire et isole les tests entre eux
      */
     @After
     fun closeDatabase() {
@@ -74,16 +57,17 @@ class TaskDaoTest {
 
     /**
      * Test 1 : insérer une tâche et la retrouver
+     * runBlocking : bloque le thread jusqu'à la fin de la coroutine
      */
     @Test
-    fun insert_andRetrieve() = runTest {
+    fun insert_andRetrieve() = runBlocking {
         // ARRANGE : tâche à insérer
         val task = Task(title = "Acheter du lait", isDone = false)
 
-        // ACT : insertion
+        // ACT : insertion en base
         taskDao.insert(task)
 
-        // ASSERT : récupère toutes les tâches et vérifie
+        // ASSERT : récupère et vérifie
         val result = taskDao.getAllTasks().getOrAwaitValue()
         assertEquals(1, result.size)
         assertEquals("Acheter du lait", result[0].title)
@@ -94,46 +78,44 @@ class TaskDaoTest {
      * Test 2 : supprimer une tâche → liste vide
      */
     @Test
-    fun insert_thenDelete_listIsEmpty() = runTest {
+    fun insert_thenDelete_listIsEmpty() = runBlocking {
         // ARRANGE : insère une tâche
         val task = Task(title = "Tâche temporaire")
         taskDao.insert(task)
-
-        // Récupère la tâche avec son id auto-généré
         val inserted = taskDao.getAllTasks().getOrAwaitValue()[0]
 
-        // ACT : supprime la tâche
+        // ACT : supprime
         taskDao.delete(inserted)
 
-        // ASSERT : la liste est maintenant vide
+        // ASSERT : liste vide
         val result = taskDao.getAllTasks().getOrAwaitValue()
         assertTrue("La liste devrait être vide", result.isEmpty())
     }
 
     /**
-     * Test 3 : mettre à jour isDone d'une tâche
+     * Test 3 : cocher une tâche → isDone passe à true
      */
     @Test
-    fun update_isDone_changesToTrue() = runTest {
+    fun update_isDone_changesToTrue() = runBlocking {
         // ARRANGE : tâche non terminée
         val task = Task(title = "Faire la vaisselle", isDone = false)
         taskDao.insert(task)
         val inserted = taskDao.getAllTasks().getOrAwaitValue()[0]
 
-        // ACT : coche la tâche (copy avec isDone = true)
+        // ACT : coche la tâche
         taskDao.update(inserted.copy(isDone = true))
 
-        // ASSERT : isDone est maintenant true
+        // ASSERT : isDone = true
         val result = taskDao.getAllTasks().getOrAwaitValue()[0]
         assertEquals(true, result.isDone)
     }
 
     /**
-     * Test 4 : insérer plusieurs tâches
+     * Test 4 : insérer plusieurs tâches → toutes présentes
      */
     @Test
-    fun insertMultiple_retrieveAll() = runTest {
-        // ARRANGE : 3 tâches
+    fun insertMultiple_retrieveAll() = runBlocking {
+        // ARRANGE + ACT : 3 insertions
         taskDao.insert(Task(title = "Tâche 1"))
         taskDao.insert(Task(title = "Tâche 2"))
         taskDao.insert(Task(title = "Tâche 3"))
@@ -147,16 +129,16 @@ class TaskDaoTest {
      * Test 5 : modifier le titre d'une tâche
      */
     @Test
-    fun update_title_changesCorrectly() = runTest {
-        // ARRANGE : tâche avec titre original
+    fun update_title_changesCorrectly() = runBlocking {
+        // ARRANGE : titre original
         val task = Task(title = "Ancien titre")
         taskDao.insert(task)
         val inserted = taskDao.getAllTasks().getOrAwaitValue()[0]
 
-        // ACT : modifie le titre
+        // ACT : nouveau titre
         taskDao.update(inserted.copy(title = "Nouveau titre"))
 
-        // ASSERT : le titre a bien changé
+        // ASSERT : titre mis à jour
         val result = taskDao.getAllTasks().getOrAwaitValue()[0]
         assertEquals("Nouveau titre", result.title)
     }
